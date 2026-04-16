@@ -9,5 +9,20 @@ wheels/
 # Virtual environments
 .venv
 
+# Environment variables
+.env
 
+# Data outputs (keep samples, ignore generated)
+data/artifacts/
+data/logs/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project Documents (local only)
 Project_Documents/

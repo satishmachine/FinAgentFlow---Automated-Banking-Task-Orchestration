@@ -1,0 +1,12 @@
+[
+    {"id": "txn-001", "amount": 1500.00, "date": "2026-01-05", "description": "Wire transfer - Client A", "type": "credit"},
+    {"id": "txn-002", "amount": 3200.50, "date": "2026-01-10", "description": "Loan disbursement - Client B", "type": "debit"},
+    {"id": "txn-003", "amount": 750.00, "date": "2026-01-15", "description": "Service fee collection", "type": "credit"},
+    {"id": "txn-004", "amount": 11800.00, "date": "2026-01-20", "description": "Investment portfolio transfer", "type": "debit"},
+    {"id": "txn-005", "amount": 450.75, "date": "2026-02-01", "description": "Monthly interest credit", "type": "credit"},
+    {"id": "txn-006", "amount": 8500.00, "date": "2026-02-10", "description": "Vendor payment - Supplier X", "type": "debit"},
+    {"id": "txn-008", "amount": 9800.00, "date": "2026-02-28", "description": "Quarterly dividend", "type": "credit"},
+    {"id": "txn-009", "amount": 5600.25, "date": "2026-03-05", "description": "Insurance premium", "type": "debit"},
+    {"id": "txn-010", "amount": 15000.00, "date": "2026-03-15", "description": "Real estate escrow", "type": "debit"},
+    {"id": "txn-011", "amount": 4200.00, "date": "2026-03-20", "description": "Equipment lease payment", "type": "debit"}
+]
