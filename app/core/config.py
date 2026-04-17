@@ -54,6 +54,9 @@ class Settings(BaseSettings):
     storage_backend: str = "local"  # "local" | "sqlite"
     sqlite_url: str = f"sqlite:///{BASE_DIR / 'data' / 'finagentflow.db'}"
     artifacts_dir: str = str(ARTIFACTS_DIR)
+    storage_retry_attempts: int = 3
+    storage_retry_delay: float = 0.2  # seconds, exponential backoff base
+    storage_fallback_dir: str = str(ARTIFACTS_DIR / "_fallback")
 
     # ── Logging ───────────────────────────────────────────────────────────
     log_level: str = "INFO"

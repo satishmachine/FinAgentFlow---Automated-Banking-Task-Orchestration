@@ -18,17 +18,19 @@ from app.orchestration.dependency_resolver import resolve_dependencies
 logger = get_logger("GraphBuilder")
 
 
-class WorkflowState(TypedDict):
+class WorkflowState(TypedDict, total=False):
     """State that flows through the LangGraph workflow."""
     input_data: Dict[str, Any]
     results: Dict[str, Dict[str, Any]]
     logs: List[str]
     current_task: str
     status: str
+    failed_tasks: List[str]
 
 
 def build_workflow_graph(
     tasks: List[TaskDefinition],
+    continue_on_failure: bool = False,
 ) -> StateGraph:
     """
     Build a LangGraph StateGraph from a list of task definitions.
@@ -38,6 +40,9 @@ def build_workflow_graph(
 
     Args:
         tasks: List of task definitions for the workflow.
+        continue_on_failure: If True, a failing task is recorded in the
+            shared state and execution continues with downstream tasks.
+            If False, the exception propagates and the workflow aborts.
 
     Returns:
         A compiled LangGraph StateGraph ready for execution.
@@ -46,7 +51,8 @@ def build_workflow_graph(
     execution_levels = resolve_dependencies(tasks)
 
     logger.info(
-        f"Building graph with {len(tasks)} tasks in {len(execution_levels)} levels"
+        f"Building graph with {len(tasks)} tasks in {len(execution_levels)} levels "
+        f"(continue_on_failure={continue_on_failure})"
     )
 
     # ── Create the graph ──────────────────────────────────────────────────
@@ -67,14 +73,31 @@ def build_workflow_graph(
                     if dep_id in state["results"]:
                         context[dep_id] = state["results"][dep_id]
 
-                result: TaskResult = await agent.run(
-                    task_def, state["input_data"], context
-                )
+                try:
+                    result: TaskResult = await agent.run(
+                        task_def, state["input_data"], context
+                    )
+                except Exception as e:
+                    if not continue_on_failure:
+                        raise
+                    logger.warning(
+                        f"Task '{task_def.id}' raised but continue_on_failure=True: {e}"
+                    )
+                    state.setdefault("failed_tasks", []).append(task_def.id)
+                    state["results"][task_def.id] = {"error": str(e)}
+                    state["logs"].append(
+                        f"[{task_def.id}] FAILED: {e}"
+                    )
+                    state["current_task"] = task_def.id
+                    state["status"] = "failed"
+                    return state
 
                 state["results"][task_def.id] = result.output_data
                 state["logs"].extend(result.logs)
                 state["current_task"] = task_def.id
                 state["status"] = result.status.value
+                if result.status.value == "failed":
+                    state.setdefault("failed_tasks", []).append(task_def.id)
                 return state
 
             return node_fn

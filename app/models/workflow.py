@@ -40,6 +40,7 @@ class WorkflowDefinition(BaseModel):
     name: str
     description: Optional[str] = None
     tasks: List[TaskDefinition] = Field(default_factory=list)
+    continue_on_failure: bool = False
     created_at: datetime = Field(default_factory=datetime.now)
 
     class Config:

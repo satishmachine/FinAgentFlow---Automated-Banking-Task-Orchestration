@@ -122,7 +122,7 @@ async def run_demo():
     logger.info(f"Duration: {execution.duration_seconds:.2f}s")
 
     for task_id, result in execution.results.items():
-        logger.info(f"\n{'─' * 40}")
+        logger.info(f"\n{'-' * 40}")
         logger.info(f"Task: {task_id}")
         logger.info(f"Status: {result.status.value}")
         logger.info(f"Output: {json.dumps(result.output_data, indent=2, default=str)[:500]}")

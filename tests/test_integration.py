@@ -3,6 +3,8 @@ Integration tests for end-to-end workflow execution.
 """
 
 import pytest
+
+from app.core.exceptions import CircularDependencyError, WorkflowError
 from app.models.task import TaskDefinition, TaskType
 from app.orchestration.workflow_manager import WorkflowManager
 
@@ -69,3 +71,50 @@ class TestWorkflowIntegration:
 
         assert execution.status.value in ("completed", "failed")
         assert execution.duration_seconds is not None
+
+    def test_add_task_appends(self, manager, sample_workflow):
+        """add_task should append and keep the dependency graph valid."""
+        new_task = TaskDefinition(
+            id="notify",
+            type=TaskType.COMMUNICATION,
+            name="Final Notification",
+            dependencies=["communicate"],
+        )
+        updated = manager.add_task(sample_workflow.id, new_task)
+        assert len(updated.tasks) == 4
+        assert updated.tasks[-1].id == "notify"
+
+    def test_add_task_duplicate_id_rejected(self, manager, sample_workflow):
+        dup = TaskDefinition(
+            id="reconcile",
+            type=TaskType.COMPLIANCE,
+            name="Duplicate",
+        )
+        with pytest.raises(WorkflowError):
+            manager.add_task(sample_workflow.id, dup)
+
+    def test_add_task_rejects_cycle(self, manager, sample_workflow):
+        # A self-dependency creates a cycle, which Kahn's algorithm catches.
+        cyclic = TaskDefinition(
+            id="selfdep",
+            type=TaskType.COMPLIANCE,
+            name="Cyclic",
+            dependencies=["selfdep"],
+        )
+        with pytest.raises(CircularDependencyError):
+            manager.add_task(sample_workflow.id, cyclic)
+
+    def test_continue_on_failure_flag_persisted(self, manager):
+        """create_workflow should persist continue_on_failure."""
+        wf = manager.create_workflow(
+            name="Resilient",
+            tasks=[
+                TaskDefinition(
+                    id="r1",
+                    type=TaskType.RECONCILIATION,
+                    name="R1",
+                )
+            ],
+            continue_on_failure=True,
+        )
+        assert wf.continue_on_failure is True

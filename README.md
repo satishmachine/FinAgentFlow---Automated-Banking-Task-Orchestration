@@ -76,6 +76,7 @@ The platform produces structured data artifacts (JSON/CSV) and comprehensive aud
 |-------|-----------|
 | Language | Python 3.10+ |
 | Workflow Engine | LangGraph |
+| Agentic Framework | Custom agent pattern (TaskAgent + AgentRegistry) — implements agentic-ai concepts natively |
 | AI Generation | EuriAI (gpt-4.1-nano) |
 | REST API | FastAPI + Uvicorn |
 | Frontend | Streamlit |
